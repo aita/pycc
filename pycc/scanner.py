@@ -2,45 +2,14 @@ import dataclasses
 from typing import List, Union, Optional
 from io import StringIO
 
-from .token import Token
+from .token import Token, KEYWORDS
 from .ast import IntegerConstant, FloatingConstant, CharacterConstant, StringConstant
 from .file import File, Location
 from .error import Error, Warning, ErrorInfo
 
-RESERVED_WORDS = {
-    "break": Token.BREAK,
-    "case": Token.CASE,
-    "char": Token.CHAR,
-    "continue": Token.CONTINUE,
-    "default": Token.DEFAULT,
-    "do": Token.DO,
-    "else": Token.ELSE,
-    "enum": Token.ENUM,
-    "if": Token.IF,
-    "int": Token.INT,
-    "long": Token.LONG,
-    "restrict": Token.RESTRICT,
-    "return": Token.RETURN,
-    "short": Token.SHORT,
-    "sizeof": Token.SIZEOF,
-    "switch": Token.SWITCH,
-    "typedef": Token.TYPEDEF,
-    "unsigned": Token.UNSIGNED,
-    "void": Token.VOID,
-    "while": Token.WHILE,
-}
-
 
 OCTAL_DIGIT = set("01234567")
 HEXADECIMAL_DIGIT = set("0123456789abcdefABCDEF")
-
-
-def is_hexadecimal_digit(c):
-    return c in HEXADECIMAL_DIGIT
-
-
-def is_octal_digit(c):
-    return c in OCTAL_DIGIT
 
 
 @dataclasses.dataclass
@@ -51,7 +20,9 @@ class Scanner:
     endpos: int = 0
     line: int = 1
     column: int = 0
-    value: Union[IntegerConstant, FloatingConstant, CharacterConstant, StringConstant, None] = None
+    value: Union[
+        IntegerConstant, FloatingConstant, CharacterConstant, StringConstant, None
+    ] = None
     errors: List[ErrorInfo] = dataclasses.field(default_factory=list)
 
     @property
@@ -247,9 +218,7 @@ class Scanner:
             else:
                 break
         text = self.file.source[self.startpos : self.pos]
-        if text in RESERVED_WORDS:
-            return RESERVED_WORDS[text]
-        return Token.IDENTIFIER
+        return KEYWORDS.get(text, Token.IDENTIFIER)
 
     def _scan_number(self) -> Token:
         startpos = self.startpos
@@ -258,19 +227,19 @@ class Scanner:
         if c == "0":
             self._consume()
             c2 = self._peek()
-            if is_hexadecimal_digit(c2):
+            if c2 in HEXADECIMAL_DIGIT:
                 base = 8
                 startpos = self.pos
             elif c2 == "x" or c2 == "X":
                 c3 = self._peek(1)
-                if is_hexadecimal_digit(c3):
+                if c3 in HEXADECIMAL_DIGIT:
                     self._consume()
                     base = 16
                     startpos = self.pos
         invalid_digit = False
         while True:
             c = self._peek()
-            if not is_hexadecimal_digit(c):
+            if not c in HEXADECIMAL_DIGIT:
                 break
             if base != 16 and (c == "e" or c == "E"):
                 return self._scan_decimal_fractional_part()
@@ -358,7 +327,7 @@ class Scanner:
     def _scan_hexadecimal_fractional_part(self) -> Token:
         while True:
             c = self._peek()
-            if not is_hexadecimal_digit(c):
+            if not c in HEXADECIMAL_DIGIT:
                 break
             self._consume()
         invalid_exponent = False
@@ -478,10 +447,10 @@ class Scanner:
         pos = self.pos
         c = self._peek()
         self._consume()
-        if is_octal_digit(c):
-            if is_octal_digit(self._peek()):
+        if c in OCTAL_DIGIT:
+            if self._peek() in OCTAL_DIGIT:
                 self._consume()
-                if is_octal_digit(self._peek()):
+                if self._peek() in OCTAL_DIGIT:
                     self._consume()
             return chr(int(self.file.source[pos : self.pos], 8))
         elif c == "x" or c == "X":
@@ -489,7 +458,7 @@ class Scanner:
             pos = self.pos
             while True:
                 c = self._peek()
-                if not is_hexadecimal_digit(c):
+                if not c in HEXADECIMAL_DIGIT:
                     break
                 self._consume()
             text = self.file.source[pos : self.pos]

@@ -67,7 +67,7 @@ class Token(Enum):
     PIPE_EQUALS = auto()
     CARET_EQUALS = auto()
 
-    # reserved words
+    # keywords
     BREAK = auto()
     CASE = auto()
     CHAR = auto()
@@ -88,3 +88,27 @@ class Token(Enum):
     UNSIGNED = auto()
     VOID = auto()
     WHILE = auto()
+
+
+KEYWORDS = {
+    "break": Token.BREAK,
+    "case": Token.CASE,
+    "char": Token.CHAR,
+    "continue": Token.CONTINUE,
+    "default": Token.DEFAULT,
+    "do": Token.DO,
+    "else": Token.ELSE,
+    "enum": Token.ENUM,
+    "if": Token.IF,
+    "int": Token.INT,
+    "long": Token.LONG,
+    "restrict": Token.RESTRICT,
+    "return": Token.RETURN,
+    "short": Token.SHORT,
+    "sizeof": Token.SIZEOF,
+    "switch": Token.SWITCH,
+    "typedef": Token.TYPEDEF,
+    "unsigned": Token.UNSIGNED,
+    "void": Token.VOID,
+    "while": Token.WHILE,
+}
