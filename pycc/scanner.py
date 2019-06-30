@@ -1,32 +1,13 @@
 import dataclasses
 from typing import List, Union, Optional
-from enum import Enum
+from io import StringIO
 
 from .token import Token, KEYWORDS
-from .ast import IntegerConstant, FloatingConstant
+from .ast import IntegerConstant, FloatingConstant, CharacterConstant, StringConstant
 from .file import File, Location
+from .error import Error, Warning, ErrorInfo
 
 
-class Error(Enum):
-    UNKNOWN_CHARACTER = "unknown character"
-    UNTERMINATED_MULTI_LINE_COMMENT = "unterminated /* comment"
-    UNTERMINATED_STRING = "unterminated string"
-    UNTERMINATED_CHARACTER = "unterminated character"
-    INVALID_INTEGER_CONSTANT_SUFFIX = "invalid integer constant suffix"
-    INVALID_FLOATING_CONSTANT_SUFFIX = "invalid floating constant suffix"
-    INVALID_DIGIT = "invalid digit"
-    INVALID_FLOATING_EXPONENT = "invalid floating exponent"
-
-
-class Warning(Enum):
-    UNKNOWN_ESCAPE_SEQUENCE = "unknown escape sequence"
-
-
-@dataclasses.dataclass
-class ErrorInfo:
-    location: Location
-    name: Union[Error, Warning]
-    message: str
 
 
 @dataclasses.dataclass
@@ -37,7 +18,9 @@ class Scanner:
     endpos: int = 0
     line: int = 1
     column: int = 0
-    value: Union[IntegerConstant, FloatingConstant, None] = None
+    value: Union[
+        IntegerConstant, FloatingConstant, CharacterConstant, StringConstant, None
+    ] = None
     errors: List[ErrorInfo] = dataclasses.field(default_factory=list)
 
     @property
@@ -81,7 +64,11 @@ class Scanner:
             return self._scan_number()
 
         self._consume()
-        if c == "_" or c.isalpha():
+        if c == "'":
+            return self._scan_character_constant()
+        elif c == '"':
+            return self._scan_string_constant()
+        elif c == "_" or c.isalpha():
             return self._scan_identifier()
         elif c == "{":
             return Token.LEFT_BRACE
@@ -405,6 +392,100 @@ class Scanner:
             else:
                 return False
         return True
+
+    def _scan_character_constant(self) -> Token:
+        try:
+            value = self._scan_character_sequence("'")
+        except ValueError:
+            return Token.INVALID
+        self.value = CharacterConstant(
+            self._loc, self.file.source[self.startpos : self.pos], value
+        )
+        return Token.CHARACTER_CONSTANT
+
+    def _scan_string_constant(self) -> Token:
+        try:
+            value = self._scan_character_sequence("'")
+        except ValueError:
+            return Token.INVALID
+        self.value = StringConstant(
+            self._loc, self.file.source[self.startpos : self.pos], value
+        )
+        return Token.STRING_CONSTANT
+
+    def _scan_character_sequence(self, quote) -> str:
+        out = StringIO()
+        startpos = self.pos
+        error = None
+        while True:
+            c = self._peek()
+            self._consume()
+            if c == quote:
+                break
+            elif c == "\\":
+                try:
+                    out.write(self._scan_escape_sequence())
+                except ValueError as e:
+                    error = e
+            elif c == "\r" or c == "\n":
+                msg = "missing terminating ' character"
+                self._error(Error.UNTERMINATED_CHARACTER, msg)
+                raise ValueError(msg)
+            else:
+                out.write(c)
+        if error:
+            raise error
+        return out.getvalue()
+
+    def _scan_escape_sequence(self, csize=1) -> str:
+        escapes = {
+            "'": "'",
+            '"': '"',
+            "?": "\?",
+            "a": "\a",
+            "b": "\b",
+            "f": "\f",
+            "n": "\n",
+            "r": "\r",
+            "t": "\t",
+            "v": "\v",
+            "\\": "\\",
+        }
+
+        pos = self.pos
+        c = self._peek()
+        self._consume()
+        if c in OCTAL_DIGIT:
+            if self._peek() in OCTAL_DIGIT:
+                self._consume()
+                if self._peek() in OCTAL_DIGIT:
+                    self._consume()
+            return chr(int(self.file.source[pos : self.pos], 8))
+        elif c == "x" or c == "X":
+            self._consume()
+            pos = self.pos
+            while True:
+                c = self._peek()
+                if not c in HEXADECIMAL_DIGIT:
+                    break
+                self._consume()
+            text = self.file.source[pos : self.pos]
+            if len(text) == 0:
+                msg = r"\x used with no following hex digits"
+                self._error(Error.INVALID_ESCAPE_SEQUENCE, msg)
+                raise ValueError(msg)
+            if len(text) > csize * 2:
+                msg = "hex escape sequence out of range"
+                self._error(Error.INVALID_ESCAPE_SEQUENCE)
+                raise ValueError(msg)
+            return chr(int(text, 16))
+        elif c == "\r" or c == "\n":
+            self._scan_newline()
+            return ""
+        elif c in escapes:
+            return escapes[c]
+        self._error(Warning.UNKNOWN_ESCAPE_SEQUENCE, f"unknown escape sequence '\{c}'")
+        return c
 
     def _scan_single_line_comment(self) -> Token:
         while True:
