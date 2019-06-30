@@ -1,5 +1,5 @@
 import pytest
-from pycc.token import Token
+from pycc.token import Token, KEYWORDS
 from pycc.file import File
 
 
@@ -17,26 +17,6 @@ class Test_Scanner:
             ("x", Token.IDENTIFIER),
             ("_a0", Token.IDENTIFIER),
             ("z1", Token.IDENTIFIER),
-            ("break", Token.BREAK),
-            ("case", Token.CASE),
-            ("char", Token.CHAR),
-            ("continue", Token.CONTINUE),
-            ("default", Token.DEFAULT),
-            ("do", Token.DO),
-            ("else", Token.ELSE),
-            ("enum", Token.ENUM),
-            ("if", Token.IF),
-            ("int", Token.INT),
-            ("long", Token.LONG),
-            ("restrict", Token.RESTRICT),
-            ("return", Token.RETURN),
-            ("short", Token.SHORT),
-            ("sizeof", Token.SIZEOF),
-            ("switch", Token.SWITCH),
-            ("typedef", Token.TYPEDEF),
-            ("unsigned", Token.UNSIGNED),
-            ("void", Token.VOID),
-            ("while", Token.WHILE),
             ("0", Token.INTEGER_CONSTANT),
             ("1234567890", Token.INTEGER_CONSTANT),
             ("{", Token.LEFT_BRACE),
@@ -93,6 +73,12 @@ class Test_Scanner:
         scanner = target(File("", src))
         assert scanner.scan() == expected
         assert scanner.text == src
+
+    @pytest.mark.parametrize("keyword, expected", KEYWORDS.items())
+    def test_keywords(self, target, keyword, expected):
+        scanner = target(File("", keyword))
+        assert scanner.scan() == expected
+        assert scanner.text == keyword
 
     @pytest.mark.parametrize(
         "src, text",
