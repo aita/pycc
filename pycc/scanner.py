@@ -8,6 +8,8 @@ from .file import File, Location
 from .error import Error, Warning, ErrorInfo
 
 
+DIGIT = set("01234567")
+HEXADECIMAL_DIGIT = set("0123456789abcdefABCDEF")
 
 
 @dataclasses.dataclass
@@ -219,30 +221,25 @@ class Scanner:
         return KEYWORDS.get(text, Token.IDENTIFIER)
 
     def _scan_number(self) -> Token:
-        def is_digit(c):
-            if c == "":
-                return False
-            return c.isdigit() or c in "abcdefABCDEF"
-
         startpos = self.startpos
         base = 10
         c = self._peek()
         if c == "0":
             self._consume()
             c2 = self._peek()
-            if is_digit(c2):
+            if c2 in HEXADECIMAL_DIGIT:
                 base = 8
                 startpos = self.pos
             elif c2 == "x" or c2 == "X":
                 c3 = self._peek(1)
-                if is_digit(c3):
+                if c3 in HEXADECIMAL_DIGIT:
                     self._consume()
                     base = 16
                     startpos = self.pos
         invalid_digit = False
         while True:
             c = self._peek()
-            if not is_digit(c):
+            if not c in HEXADECIMAL_DIGIT:
                 break
             if base != 16 and (c == "e" or c == "E"):
                 return self._scan_decimal_fractional_part()
@@ -328,14 +325,9 @@ class Scanner:
         return Token.FLOATING_CONSTANT
 
     def _scan_hexadecimal_fractional_part(self) -> Token:
-        def is_digit(c):
-            if c == "":
-                return False
-            return c.isdigit() or c in "abcdefABCDEF"
-
         while True:
             c = self._peek()
-            if not is_digit(c):
+            if not c in HEXADECIMAL_DIGIT:
                 break
             self._consume()
         invalid_exponent = False
