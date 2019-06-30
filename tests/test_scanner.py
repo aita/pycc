@@ -124,7 +124,7 @@ class Test_Scanner:
     )
     def test_integer_constant(self, target, src, tok, value):
         scanner = target(File("", src))
-        assert scanner.scan() == tok, scanner.errors
+        assert scanner.scan() == tok
         assert scanner.text == src
         if value is None:
             assert scanner.value is None
@@ -162,7 +162,30 @@ class Test_Scanner:
     )
     def test_floating_constant(self, target, src, tok, value):
         scanner = target(File("", src))
-        assert scanner.scan() == tok, scanner.errors
+        assert scanner.scan() == tok
+        assert scanner.text == src
+        if value is None:
+            assert scanner.value is None
+        else:
+            assert scanner.value.value == value
+            assert scanner.value.text == src
+
+    @pytest.mark.parametrize(
+        "src, tok, value",
+        [
+            ("'a'", Token.CHARACTER_CONSTANT, "a"),
+            ("'ab'", Token.CHARACTER_CONSTANT, "ab"),
+            (r"'\n'", Token.CHARACTER_CONSTANT, "\n"),
+            (r"'\&'", Token.CHARACTER_CONSTANT, "&"),
+            (r"'\1'", Token.CHARACTER_CONSTANT, chr(0o1)),
+            (r"'\12'", Token.CHARACTER_CONSTANT, chr(0o12)),
+            (r"'\123'", Token.CHARACTER_CONSTANT, chr(0o123)),
+            (r"'\12a'", Token.CHARACTER_CONSTANT, chr(0o12) + "a"),
+        ],
+    )
+    def test_character_constant(self, target, src, tok, value):
+        scanner = target(File("", src))
+        assert scanner.scan() == tok
         assert scanner.text == src
         if value is None:
             assert scanner.value is None
