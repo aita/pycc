@@ -2,33 +2,9 @@ import dataclasses
 from typing import List, Union, Optional
 from enum import Enum
 
-from .token import Token
+from .token import Token, KEYWORDS
 from .ast import IntegerConstant, FloatingConstant
 from .file import File, Location
-
-
-RESERVED_WORDS = {
-    "break": Token.BREAK,
-    "case": Token.CASE,
-    "char": Token.CHAR,
-    "continue": Token.CONTINUE,
-    "default": Token.DEFAULT,
-    "do": Token.DO,
-    "else": Token.ELSE,
-    "enum": Token.ENUM,
-    "if": Token.IF,
-    "int": Token.INT,
-    "long": Token.LONG,
-    "restrict": Token.RESTRICT,
-    "return": Token.RETURN,
-    "short": Token.SHORT,
-    "sizeof": Token.SIZEOF,
-    "switch": Token.SWITCH,
-    "typedef": Token.TYPEDEF,
-    "unsigned": Token.UNSIGNED,
-    "void": Token.VOID,
-    "while": Token.WHILE,
-}
 
 
 class Error(Enum):
@@ -253,9 +229,7 @@ class Scanner:
             else:
                 break
         text = self.file.source[self.startpos : self.pos]
-        if text in RESERVED_WORDS:
-            return RESERVED_WORDS[text]
-        return Token.IDENTIFIER
+        return KEYWORDS.get(text, Token.IDENTIFIER)
 
     def _scan_number(self) -> Token:
         def is_digit(c):
