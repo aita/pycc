@@ -25,7 +25,8 @@ class Token(Enum):
     RIGHT_PAREN = auto()
     LEFT_BRACKET = auto()
     RIGHT_BRACKET = auto()
-    DOT = auto()
+    PERIOD = auto()
+    ELLIPSIS = auto()
     SEMICOLON = auto()
     COMMA = auto()
     LESS_THAN = auto()
@@ -53,8 +54,6 @@ class Token(Enum):
     QUESTION = auto()
     COLON = auto()
     ARROW = auto()
-
-    # assignments
     EQUALS = auto()
     PLUS_EQUALS = auto()
     MINUS_EQUALS = auto()
@@ -66,6 +65,8 @@ class Token(Enum):
     AMPERSAND_EQUALS = auto()
     PIPE_EQUALS = auto()
     CARET_EQUALS = auto()
+    HASH = auto()
+    HASH_HASH = auto()
 
     # keywords
     AUTO = auto()
@@ -158,4 +159,57 @@ KEYWORDS = {
     "_Noreturn": Token.NORETURN,
     "_Static_assert": Token.STATIC_ASSERT,
     "_Thread_local": Token.THREAD_LOCAL,
+}
+
+PUNCTUATORS = {
+    "{": Token.LEFT_BRACE,
+    "}": Token.RIGHT_BRACE,
+    "(": Token.LEFT_PAREN,
+    ")": Token.RIGHT_PAREN,
+    "[": Token.LEFT_BRACKET,
+    "]": Token.RIGHT_BRACKET,
+    ".": Token.PERIOD,
+    "...": Token.ELLIPSIS,
+    ",": Token.COMMA,
+    ";": Token.SEMICOLON,
+    "<": Token.LESS_THAN,
+    "<=": Token.LESS_THAN_EQUALS,
+    "<<": Token.LESS_THAN_LESS_THAN,
+    "<<=": Token.LESS_THAN_LESS_THAN_EQUALS,
+    ">": Token.GREATER_THAN,
+    ">=": Token.GREATER_THAN_EQUALS,
+    ">>": Token.GREATER_THAN_GREATER_THAN,
+    ">>=": Token.GREATER_THAN_GREATER_THAN_EQUALS,
+    "=": Token.EQUALS,
+    "==": Token.EQUALS_EQUALS,
+    "!": Token.EXCLAMATION,
+    "!=": Token.EXCLAMATION_EQUALS,
+    "+": Token.PLUS,
+    "++": Token.PLUS_PLUS,
+    "+=": Token.PLUS_EQUALS,
+    "-": Token.MINUS,
+    "--": Token.MINUS_MINUS,
+    "-=": Token.MINUS_EQUALS,
+    "->": Token.ARROW,
+    "*": Token.STAR,
+    "*=": Token.STAR_EQUALS,
+    "/": Token.SLASH,
+    "/=": Token.SLASH_EQUALS,
+    "//": Token.SINGLE_LINE_COMMENT,
+    "/**/": Token.MULTI_LINE_COMMENT,
+    "%": Token.PERCENT,
+    "%=": Token.PERCENT_EQUALS,
+    "&": Token.AMPERSAND,
+    "&&": Token.AMPERSAND_AMPERSAND,
+    "&=": Token.AMPERSAND_EQUALS,
+    "|": Token.PIPE,
+    "||": Token.PIPE_PIPE,
+    "|=": Token.PIPE_EQUALS,
+    "^": Token.CARET,
+    "^=": Token.CARET_EQUALS,
+    "~": Token.TILDE,
+    "?": Token.QUESTION,
+    ":": Token.COLON,
+    "#": Token.HASH,
+    "##": Token.HASH_HASH,
 }

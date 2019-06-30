@@ -36,9 +36,9 @@ class Scanner:
             return c
         return ""
 
-    def _consume(self) -> None:
-        self.pos += 1
-        self.column += 1
+    def _consume(self, off=1) -> None:
+        self.pos += off
+        self.column += off
 
     def _error(
         self, error: Union[Error, Warning], message: Optional[str] = None
@@ -88,7 +88,12 @@ class Scanner:
             c2 = self._peek()
             if c2.isdigit():
                 return self._scan_decimal_fractional_part()
-            return Token.DOT
+            elif c2 == ".":
+                c3 = self._peek(1)
+                if c3 == ".":
+                    self._consume(2)
+                    return Token.ELLIPSIS
+            return Token.PERIOD
         elif c == ";":
             return Token.SEMICOLON
         elif c == ",":
@@ -105,6 +110,12 @@ class Scanner:
             elif c2 == "=":
                 self._consume()
                 return Token.LESS_THAN_EQUALS
+            elif c2 == ":":
+                self._consume()
+                return Token.LEFT_BRACKET
+            elif c2 == "%":
+                self._consume()
+                return Token.LEFT_BRACE
             return Token.LESS_THAN
         elif c == ">":
             c2 = self._peek()
@@ -175,6 +186,18 @@ class Scanner:
             if c2 == "=":
                 self._consume()
                 return Token.PERCENT_EQUALS
+            elif c2 == ">":
+                self._consume()
+                return Token.RIGHT_BRACE
+            elif c2 == ":":
+                self._consume()
+                c3 = self._peek()
+                if c3 == "%":
+                    c4 = self._peek(1)
+                    if c4 == ":":
+                        self._consume(2)
+                        return Token.HASH_HASH
+                return Token.HASH
             return Token.PERCENT
         elif c == "&":
             c2 = self._peek()
@@ -205,7 +228,17 @@ class Scanner:
         elif c == "?":
             return Token.QUESTION
         elif c == ":":
+            c2 = self._peek()
+            if c2 == ">":
+                self._consume()
+                return Token.RIGHT_BRACKET
             return Token.COLON
+        elif c == "#":
+            c2 = self._peek()
+            if c2 == "#":
+                self._consume()
+                return Token.HASH_HASH
+            return Token.HASH
         else:
             self._error(Error.UNKNOWN_CHARACTER)
             return Token.INVALID

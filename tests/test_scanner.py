@@ -1,5 +1,5 @@
 import pytest
-from pycc.token import Token, KEYWORDS
+from pycc.token import Token, KEYWORDS, PUNCTUATORS
 from pycc.file import File
 
 
@@ -19,53 +19,6 @@ class Test_Scanner:
             ("z1", Token.IDENTIFIER),
             ("0", Token.INTEGER_CONSTANT),
             ("1234567890", Token.INTEGER_CONSTANT),
-            ("{", Token.LEFT_BRACE),
-            ("}", Token.RIGHT_BRACE),
-            ("(", Token.LEFT_PAREN),
-            (")", Token.RIGHT_PAREN),
-            ("[", Token.LEFT_BRACKET),
-            ("]", Token.RIGHT_BRACKET),
-            (".", Token.DOT),
-            (",", Token.COMMA),
-            (";", Token.SEMICOLON),
-            ("<", Token.LESS_THAN),
-            ("<=", Token.LESS_THAN_EQUALS),
-            ("<<", Token.LESS_THAN_LESS_THAN),
-            ("<<=", Token.LESS_THAN_LESS_THAN_EQUALS),
-            (">", Token.GREATER_THAN),
-            (">=", Token.GREATER_THAN_EQUALS),
-            (">>", Token.GREATER_THAN_GREATER_THAN),
-            (">>=", Token.GREATER_THAN_GREATER_THAN_EQUALS),
-            ("=", Token.EQUALS),
-            ("==", Token.EQUALS_EQUALS),
-            ("!", Token.EXCLAMATION),
-            ("!=", Token.EXCLAMATION_EQUALS),
-            ("+", Token.PLUS),
-            ("++", Token.PLUS_PLUS),
-            ("+=", Token.PLUS_EQUALS),
-            ("-", Token.MINUS),
-            ("--", Token.MINUS_MINUS),
-            ("-=", Token.MINUS_EQUALS),
-            ("->", Token.ARROW),
-            ("*", Token.STAR),
-            ("*=", Token.STAR_EQUALS),
-            ("/", Token.SLASH),
-            ("/=", Token.SLASH_EQUALS),
-            ("//", Token.SINGLE_LINE_COMMENT),
-            ("/**/", Token.MULTI_LINE_COMMENT),
-            ("%", Token.PERCENT),
-            ("%=", Token.PERCENT_EQUALS),
-            ("&", Token.AMPERSAND),
-            ("&&", Token.AMPERSAND_AMPERSAND),
-            ("&=", Token.AMPERSAND_EQUALS),
-            ("|", Token.PIPE),
-            ("||", Token.PIPE_PIPE),
-            ("|=", Token.PIPE_EQUALS),
-            ("^", Token.CARET),
-            ("^=", Token.CARET_EQUALS),
-            ("~", Token.TILDE),
-            ("?", Token.QUESTION),
-            (":", Token.COLON),
             ("@", Token.INVALID),
         ],
     )
@@ -75,10 +28,32 @@ class Test_Scanner:
         assert scanner.text == src
 
     @pytest.mark.parametrize("keyword, expected", KEYWORDS.items())
-    def test_keywords(self, target, keyword, expected):
+    def test_keyword(self, target, keyword, expected):
         scanner = target(File("", keyword))
         assert scanner.scan() == expected
         assert scanner.text == keyword
+
+    @pytest.mark.parametrize("punctuator, expected", PUNCTUATORS.items())
+    def test_punctuator(self, target, punctuator, expected):
+        scanner = target(File("", punctuator))
+        assert scanner.scan() == expected
+        assert scanner.text == punctuator
+
+    @pytest.mark.parametrize(
+        "punctuator, expected",
+        [
+            ("<:", Token.LEFT_BRACKET),
+            (":>", Token.RIGHT_BRACKET),
+            ("<%", Token.LEFT_BRACE),
+            ("%>", Token.RIGHT_BRACE),
+            ("%:", Token.HASH),
+            ("%:%:", Token.HASH_HASH),
+        ],
+    )
+    def test_digraph(self, target, punctuator, expected):
+        scanner = target(File("", punctuator))
+        assert scanner.scan() == expected
+        assert scanner.text == punctuator
 
     @pytest.mark.parametrize(
         "src, text",
