@@ -2,34 +2,12 @@ import dataclasses
 from typing import List, Union, Optional
 from io import StringIO
 
-from .token import Token
+from .token import Token, KEYWORDS
 from .ast import IntegerConstant, FloatingConstant, CharacterConstant, StringConstant
 from .file import File, Location
 from .error import Error, Warning, ErrorInfo
 
 
-RESERVED_WORDS = {
-    "break": Token.BREAK,
-    "case": Token.CASE,
-    "char": Token.CHAR,
-    "continue": Token.CONTINUE,
-    "default": Token.DEFAULT,
-    "do": Token.DO,
-    "else": Token.ELSE,
-    "enum": Token.ENUM,
-    "if": Token.IF,
-    "int": Token.INT,
-    "long": Token.LONG,
-    "restrict": Token.RESTRICT,
-    "return": Token.RETURN,
-    "short": Token.SHORT,
-    "sizeof": Token.SIZEOF,
-    "switch": Token.SWITCH,
-    "typedef": Token.TYPEDEF,
-    "unsigned": Token.UNSIGNED,
-    "void": Token.VOID,
-    "while": Token.WHILE,
-}
 OCTAL_DIGIT = set("01234567")
 HEXADECIMAL_DIGIT = set("0123456789abcdefABCDEF")
 
@@ -240,9 +218,7 @@ class Scanner:
             else:
                 break
         text = self.file.source[self.startpos : self.pos]
-        if text in RESERVED_WORDS:
-            return RESERVED_WORDS[text]
-        return Token.IDENTIFIER
+        return KEYWORDS.get(text, Token.IDENTIFIER)
 
     def _scan_number(self) -> Token:
         startpos = self.startpos

@@ -28,4 +28,3 @@ class CharacterConstant:
     location: Location
     text: str
     value: str
-
