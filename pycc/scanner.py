@@ -8,7 +8,7 @@ from .file import File, Location
 from .error import Error, Warning, ErrorInfo
 
 
-DIGIT = set("01234567")
+OCTAL_DIGIT = set("01234567")
 HEXADECIMAL_DIGIT = set("0123456789abcdefABCDEF")
 
 
