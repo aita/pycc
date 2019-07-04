@@ -101,11 +101,7 @@ class Test_Scanner:
         scanner = target(File("", src))
         assert scanner.scan() == tok
         assert scanner.text == src
-        if value is None:
-            assert scanner.value is None
-        else:
-            assert scanner.value.value == value
-            assert scanner.value.text == src
+        assert scanner.value == value
 
     @pytest.mark.parametrize(
         "src, tok, value",
@@ -139,11 +135,7 @@ class Test_Scanner:
         scanner = target(File("", src))
         assert scanner.scan() == tok
         assert scanner.text == src
-        if value is None:
-            assert scanner.value is None
-        else:
-            assert scanner.value.value == value
-            assert scanner.value.text == src
+        assert scanner.value == value
 
     @pytest.mark.parametrize(
         "src, tok, value",
@@ -162,11 +154,7 @@ class Test_Scanner:
         scanner = target(File("", src))
         assert scanner.scan() == tok
         assert scanner.text == src
-        if value is None:
-            assert scanner.value is None
-        else:
-            assert scanner.value.value == value
-            assert scanner.value.text == src
+        assert scanner.value == value
 
     @pytest.mark.parametrize(
         "src", ["// aaa bbb", "// aaa bbb\n", "// aaabbb \r\n", "// aaa bbb\r"]

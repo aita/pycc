@@ -20,9 +20,9 @@ class Scanner:
     endpos: int = 0
     line: int = 1
     column: int = 0
-    value: Union[
-        IntegerConstant, FloatingConstant, CharacterConstant, StringConstant, None
-    ] = None
+    value: Union[int, float, str, None] = None
+    start: Location = dataclasses.field(init=False)
+    end: Location = dataclasses.field(init=False)
     errors: List[ErrorInfo] = dataclasses.field(default_factory=list)
 
     @property
@@ -51,9 +51,10 @@ class Scanner:
     def scan(self):
         self._skip_whitespaces()
         self.startpos = self.pos
-        self._loc = Location(self.file.filename, self.pos, self.line, self.column)
+        self.start = Location(self.file.filename, self.pos, self.line, self.column)
         tok = self._scan()
         self.endpos = self.pos
+        self.end = Location(self.file.filename, self.pos, self.line, self.column)
         return tok
 
     def _scan(self) -> Token:
@@ -306,11 +307,7 @@ class Scanner:
                 f"invalid suffix '{suffix}' on integer constant",
             )
             return Token.INVALID
-        self.value = IntegerConstant(
-            self._loc,
-            self.file.source[self.startpos : self.pos],
-            int(self.file.source[startpos:endpos], base),
-        )
+        self.value = int(self.file.source[startpos:endpos], base)
         return Token.INTEGER_CONSTANT
 
     def _scan_number_suffix(self) -> str:
@@ -350,11 +347,7 @@ class Scanner:
                 f"invalid suffix '{suffix}' on floating constant",
             )
             return Token.INVALID
-        self.value = FloatingConstant(
-            self._loc,
-            self.file.source[self.startpos : self.pos],
-            float(self.file.source[self.startpos : endpos]),
-        )
+        self.value = float(self.file.source[self.startpos : endpos])
         return Token.FLOATING_CONSTANT
 
     def _scan_hexadecimal_fractional_part(self) -> Token:
@@ -392,11 +385,7 @@ class Scanner:
                 f"invalid suffix '{suffix}' on floating constant",
             )
             return Token.INVALID
-        self.value = FloatingConstant(
-            self._loc,
-            self.file.source[self.startpos : self.pos],
-            float.fromhex(self.file.source[self.startpos : endpos]),
-        )
+        self.value = float.fromhex(self.file.source[self.startpos : endpos])
         return Token.FLOATING_CONSTANT
 
     def _validate_integer_constant_suffix(self, suffix) -> bool:
@@ -420,22 +409,16 @@ class Scanner:
 
     def _scan_character_constant(self) -> Token:
         try:
-            value = self._scan_character_sequence("'")
+            self.value = self._scan_character_sequence("'")
         except ValueError:
             return Token.INVALID
-        self.value = CharacterConstant(
-            self._loc, self.file.source[self.startpos : self.pos], value
-        )
         return Token.CHARACTER_CONSTANT
 
     def _scan_string_constant(self) -> Token:
         try:
-            value = self._scan_character_sequence("'")
+            self.value = self._scan_character_sequence("'")
         except ValueError:
             return Token.INVALID
-        self.value = StringConstant(
-            self._loc, self.file.source[self.startpos : self.pos], value
-        )
         return Token.STRING_CONSTANT
 
     def _scan_character_sequence(self, quote) -> str:
