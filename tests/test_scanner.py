@@ -1,14 +1,18 @@
 import pytest
 from pycc.token import Token, KEYWORDS, PUNCTUATORS
-from pycc.file import File
 
 
 class Test_Scanner:
     @pytest.fixture
-    def target(self):
+    def factory(self):
         from pycc.scanner import Scanner
+        from pycc.file import File
+        from pycc.error import Reporter
 
-        return Scanner
+        def factory(text):
+            return Scanner(File("", text), Reporter())
+
+        return factory
 
     @pytest.mark.parametrize(
         "src, expected",
@@ -22,20 +26,22 @@ class Test_Scanner:
             ("@", Token.INVALID),
         ],
     )
-    def test_token(self, target, src, expected):
-        scanner = target(File("", src))
+    def test_token(self, factory, src, expected):
+        scanner = factory(src)
         assert scanner.scan() == expected
         assert scanner.text == src
 
-    @pytest.mark.parametrize("keyword, expected", KEYWORDS.items())
-    def test_keyword(self, target, keyword, expected):
-        scanner = target(File("", keyword))
+    @pytest.mark.parametrize("keyword, expected", [(x.value, x) for x in KEYWORDS])
+    def test_keyword(self, factory, keyword, expected):
+        scanner = factory(keyword)
         assert scanner.scan() == expected
         assert scanner.text == keyword
 
-    @pytest.mark.parametrize("punctuator, expected", PUNCTUATORS.items())
-    def test_punctuator(self, target, punctuator, expected):
-        scanner = target(File("", punctuator))
+    @pytest.mark.parametrize(
+        "punctuator, expected", [(x.value, x) for x in PUNCTUATORS]
+    )
+    def test_punctuator(self, factory, punctuator, expected):
+        scanner = factory(punctuator)
         assert scanner.scan() == expected
         assert scanner.text == punctuator
 
@@ -50,8 +56,8 @@ class Test_Scanner:
             ("%:%:", Token.HASH_HASH),
         ],
     )
-    def test_digraph(self, target, punctuator, expected):
-        scanner = target(File("", punctuator))
+    def test_digraph(self, factory, punctuator, expected):
+        scanner = factory(punctuator)
         assert scanner.scan() == expected
         assert scanner.text == punctuator
 
@@ -67,8 +73,8 @@ class Test_Scanner:
             ("あああ", "あああ"),
         ],
     )
-    def test_identifier(self, target, src, text):
-        scanner = target(File("", src))
+    def test_identifier(self, factory, src, text):
+        scanner = factory(src)
         assert scanner.scan() == Token.IDENTIFIER
         assert scanner.text == text
 
@@ -97,8 +103,8 @@ class Test_Scanner:
             ("0x", Token.INVALID, None),
         ],
     )
-    def test_integer_constant(self, target, src, tok, value):
-        scanner = target(File("", src))
+    def test_integer_constant(self, factory, src, tok, value):
+        scanner = factory(src)
         assert scanner.scan() == tok
         assert scanner.text == src
         assert scanner.value == value
@@ -131,8 +137,8 @@ class Test_Scanner:
             ("0x1.0p", Token.INVALID, None),
         ],
     )
-    def test_floating_constant(self, target, src, tok, value):
-        scanner = target(File("", src))
+    def test_floating_constant(self, factory, src, tok, value):
+        scanner = factory(src)
         assert scanner.scan() == tok
         assert scanner.text == src
         assert scanner.value == value
@@ -150,8 +156,8 @@ class Test_Scanner:
             (r"'\12a'", Token.CHARACTER_CONSTANT, chr(0o12) + "a"),
         ],
     )
-    def test_character_constant(self, target, src, tok, value):
-        scanner = target(File("", src))
+    def test_character_constant(self, factory, src, tok, value):
+        scanner = factory(src)
         assert scanner.scan() == tok
         assert scanner.text == src
         assert scanner.value == value
@@ -159,8 +165,8 @@ class Test_Scanner:
     @pytest.mark.parametrize(
         "src", ["// aaa bbb", "// aaa bbb\n", "// aaabbb \r\n", "// aaa bbb\r"]
     )
-    def test_single_line_comment(self, target, src):
-        scanner = target(File("", src))
+    def test_single_line_comment(self, factory, src):
+        scanner = factory(src)
         assert scanner.scan() == Token.SINGLE_LINE_COMMENT
         assert scanner.text == src
 
@@ -174,8 +180,8 @@ class Test_Scanner:
             "/** \r\n ** \n **/",
         ],
     )
-    def test_multi_line_comment(self, target, src):
-        scanner = target(File("", src))
+    def test_multi_line_comment(self, factory, src):
+        scanner = factory(src)
         assert scanner.scan() == Token.MULTI_LINE_COMMENT
         assert scanner.text == src
         assert scanner.line == len(src.splitlines())

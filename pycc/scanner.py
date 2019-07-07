@@ -1,29 +1,44 @@
 import dataclasses
-from typing import List, Union, Optional
+from typing import Union
 from io import StringIO
 
 from .token import Token, KEYWORDS
-from .ast import IntegerConstant, FloatingConstant, CharacterConstant, StringConstant
 from .file import File, Location
-from .error import Error, Warning, ErrorInfo
+from .error import Error, Warning, Reporter
 
 
 OCTAL_DIGIT = set("01234567")
 HEXADECIMAL_DIGIT = set("0123456789abcdefABCDEF")
 
+ESCAPES = {
+    "'": "'",
+    '"': '"',
+    "?": "\x3F",
+    "a": "\a",
+    "b": "\b",
+    "f": "\f",
+    "n": "\n",
+    "r": "\r",
+    "t": "\t",
+    "v": "\v",
+    "\\": "\\",
+}
+
+_KEYWORDS = {x.value: x for x in KEYWORDS}
+
 
 @dataclasses.dataclass
 class Scanner:
     file: File
-    pos: int = 0
-    startpos: int = 0
-    endpos: int = 0
-    line: int = 1
-    column: int = 0
-    value: Union[int, float, str, None] = None
+    reporter: Reporter
+    pos: int = dataclasses.field(default=0, init=False)
+    startpos: int = dataclasses.field(default=0, init=False)
+    endpos: int = dataclasses.field(default=0, init=False)
+    line: int = dataclasses.field(default=1, init=False)
+    column: int = dataclasses.field(default=0, init=False)
+    value: Union[int, float, str, None] = dataclasses.field(init=False)
     start: Location = dataclasses.field(init=False)
     end: Location = dataclasses.field(init=False)
-    errors: List[ErrorInfo] = dataclasses.field(default_factory=list)
 
     @property
     def text(self) -> str:
@@ -36,25 +51,20 @@ class Scanner:
             return c
         return ""
 
+    def _location(self):
+        return Location(self.file.filename, self.pos, self.line, self.column)
+
     def _consume(self, off=1) -> None:
         self.pos += off
         self.column += off
 
-    def _error(
-        self, error: Union[Error, Warning], message: Optional[str] = None
-    ) -> None:
-        if message is None:
-            message = error.value
-        loc = Location(self.file.filename, self.pos, self.line, self.column)
-        self.errors.append(ErrorInfo(loc, error, message))
-
     def scan(self):
         self._skip_whitespaces()
         self.startpos = self.pos
-        self.start = Location(self.file.filename, self.pos, self.line, self.column)
+        self.start = self._location()
         tok = self._scan()
         self.endpos = self.pos
-        self.end = Location(self.file.filename, self.pos, self.line, self.column)
+        self.end = self._location()
         return tok
 
     def _scan(self) -> Token:
@@ -241,7 +251,7 @@ class Scanner:
                 return Token.HASH_HASH
             return Token.HASH
         else:
-            self._error(Error.UNKNOWN_CHARACTER)
+            self.reporter.error(self._location(), Error.UNKNOWN_CHARACTER)
             return Token.INVALID
 
     def _scan_identifier(self) -> Token:
@@ -252,7 +262,7 @@ class Scanner:
             else:
                 break
         text = self.file.source[self.startpos : self.pos]
-        return KEYWORDS.get(text, Token.IDENTIFIER)
+        return _KEYWORDS.get(text, Token.IDENTIFIER)
 
     def _scan_number(self) -> Token:
         startpos = self.startpos
@@ -273,20 +283,24 @@ class Scanner:
         invalid_digit = False
         while True:
             c = self._peek()
-            if not c in HEXADECIMAL_DIGIT:
+            if c not in HEXADECIMAL_DIGIT:
                 break
             if base != 16 and (c == "e" or c == "E"):
                 return self._scan_decimal_fractional_part()
             if not invalid_digit:
                 if base == 8 and c not in "01234567":
                     invalid_digit = True
-                    self._error(
-                        Error.INVALID_DIGIT, f"invalid digit '{c}' in octal constant"
+                    self.reporter.error(
+                        self._location(),
+                        Error.INVALID_DIGIT,
+                        f"invalid digit '{c}' in octal constant",
                     )
                 elif base == 10 and not c.isdigit():
                     invalid_digit = True
-                    self._error(
-                        Error.INVALID_DIGIT, f"invalid digit '{c}' in decimal constant"
+                    self.reporter.error(
+                        self._location(),
+                        Error.INVALID_DIGIT,
+                        f"invalid digit '{c}' in decimal constant",
                     )
             self._consume()
         if c == ".":
@@ -302,7 +316,8 @@ class Scanner:
         if invalid_digit:
             return Token.INVALID
         if not self._validate_integer_constant_suffix(suffix):
-            self._error(
+            self.reporter.error(
+                self._location(),
                 Error.INVALID_INTEGER_CONSTANT_SUFFIX,
                 f"invalid suffix '{suffix}' on integer constant",
             )
@@ -333,7 +348,11 @@ class Scanner:
                 c = self._peek()
             if not c.isdigit():
                 invalid_exponent = True
-                self._error(Error.INVALID_FLOATING_EXPONENT, f"exponent has no digits")
+                self.reporter.error(
+                    self._location(),
+                    Error.INVALID_FLOATING_EXPONENT,
+                    f"exponent has no digits",
+                )
             while c.isdigit():
                 self._consume()
                 c = self._peek()
@@ -342,7 +361,8 @@ class Scanner:
         if invalid_exponent:
             return Token.INVALID
         elif suffix not in ("", "f", "l", "F", "L"):
-            self._error(
+            self.reporter.error(
+                self._location(),
                 Error.INVALID_FLOATING_CONSTANT_SUFFIX,
                 f"invalid suffix '{suffix}' on floating constant",
             )
@@ -353,7 +373,7 @@ class Scanner:
     def _scan_hexadecimal_fractional_part(self) -> Token:
         while True:
             c = self._peek()
-            if not c in HEXADECIMAL_DIGIT:
+            if c not in HEXADECIMAL_DIGIT:
                 break
             self._consume()
         invalid_exponent = False
@@ -365,13 +385,18 @@ class Scanner:
                 c = self._peek()
             if not c.isdigit():
                 invalid_exponent = True
-                self._error(Error.INVALID_FLOATING_EXPONENT, f"exponent has no digits")
+                self.reporter.error(
+                    self._location(),
+                    Error.INVALID_FLOATING_EXPONENT,
+                    f"exponent has no digits",
+                )
             while c.isdigit():
                 self._consume()
                 c = self._peek()
         else:
             invalid_exponent = True
-            self._error(
+            self.reporter.error(
+                self._location(),
                 Error.INVALID_FLOATING_EXPONENT,
                 "hexadecimal floating constant requires an exponent",
             )
@@ -380,7 +405,8 @@ class Scanner:
         if invalid_exponent:
             return Token.INVALID
         elif suffix not in ("", "f", "l", "F", "L"):
-            self._error(
+            self.reporter.error(
+                self._location(),
                 Error.INVALID_FLOATING_CONSTANT_SUFFIX,
                 f"invalid suffix '{suffix}' on floating constant",
             )
@@ -416,18 +442,18 @@ class Scanner:
 
     def _scan_string_constant(self) -> Token:
         try:
-            self.value = self._scan_character_sequence("'")
+            self.value = self._scan_character_sequence('"')
         except ValueError:
             return Token.INVALID
         return Token.STRING_CONSTANT
 
     def _scan_character_sequence(self, quote) -> str:
         out = StringIO()
-        startpos = self.pos
         error = None
         while True:
             c = self._peek()
-            self._consume()
+            if c != "":
+                self._consume()
             if c == quote:
                 break
             elif c == "\\":
@@ -435,10 +461,12 @@ class Scanner:
                     out.write(self._scan_escape_sequence())
                 except ValueError as e:
                     error = e
-            elif c == "\r" or c == "\n":
-                msg = "missing terminating ' character"
-                self._error(Error.UNTERMINATED_CHARACTER, msg)
-                raise ValueError(msg)
+            elif c == "\r" or c == "\n" or c == "":
+                message = "missing terminating ' character"
+                self.reporter.error(
+                    self._location(), Error.UNTERMINATED_CHARACTER, message
+                )
+                raise ValueError(message)
             else:
                 out.write(c)
         if error:
@@ -446,20 +474,6 @@ class Scanner:
         return out.getvalue()
 
     def _scan_escape_sequence(self, csize=1) -> str:
-        escapes = {
-            "'": "'",
-            '"': '"',
-            "?": "\?",
-            "a": "\a",
-            "b": "\b",
-            "f": "\f",
-            "n": "\n",
-            "r": "\r",
-            "t": "\t",
-            "v": "\v",
-            "\\": "\\",
-        }
-
         pos = self.pos
         c = self._peek()
         self._consume()
@@ -474,25 +488,31 @@ class Scanner:
             pos = self.pos
             while True:
                 c = self._peek()
-                if not c in HEXADECIMAL_DIGIT:
+                if c not in HEXADECIMAL_DIGIT:
                     break
                 self._consume()
             text = self.file.source[pos : self.pos]
             if len(text) == 0:
-                msg = r"\x used with no following hex digits"
-                self._error(Error.INVALID_ESCAPE_SEQUENCE, msg)
-                raise ValueError(msg)
+                message = r"\x used with no following hex digits"
+                self.reporter.error(
+                    self._location(), Error.INVALID_ESCAPE_SEQUENCE, message
+                )
+                raise ValueError(message)
             if len(text) > csize * 2:
-                msg = "hex escape sequence out of range"
-                self._error(Error.INVALID_ESCAPE_SEQUENCE)
-                raise ValueError(msg)
+                message = "hex escape sequence out of range"
+                self.reporter.error(self._location(), Error.INVALID_ESCAPE_SEQUENCE)
+                raise ValueError(message)
             return chr(int(text, 16))
         elif c == "\r" or c == "\n":
             self._scan_newline()
             return ""
-        elif c in escapes:
-            return escapes[c]
-        self._error(Warning.UNKNOWN_ESCAPE_SEQUENCE, f"unknown escape sequence '\{c}'")
+        elif c in ESCAPES:
+            return ESCAPES[c]
+        self.reporter.warning(
+            self._location(),
+            Warning.UNKNOWN_ESCAPE_SEQUENCE,
+            f"unknown escape sequence '\\{c}'",
+        )
         return c
 
     def _scan_single_line_comment(self) -> Token:
@@ -510,7 +530,9 @@ class Scanner:
         while True:
             c = self._peek()
             if c == "":
-                self._error(Error.UNTERMINATED_MULTI_LINE_COMMENT)
+                self.reporter.error(
+                    self._location(), Error.UNTERMINATED_MULTI_LINE_COMMENT
+                )
                 return Token.INVALID
             elif c == "*":
                 self._consume()

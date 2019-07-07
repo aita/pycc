@@ -1,215 +1,213 @@
-from enum import Enum, auto
+from enum import Enum
 
 
 class Token(Enum):
-    INVALID = auto()
-    EOF = auto()
+    INVALID = "invalid token"
+    EOF = "eof"
 
     # identifier
-    IDENTIFIER = auto()
+    IDENTIFIER = "identifier"
 
     # comments
-    SINGLE_LINE_COMMENT = auto()
-    MULTI_LINE_COMMENT = auto()
+    SINGLE_LINE_COMMENT = "// comment"
+    MULTI_LINE_COMMENT = "/* comment"
 
     # literals
-    CHARACTER_CONSTANT = auto()
-    INTEGER_CONSTANT = auto()
-    FLOATING_CONSTANT = auto()
-    STRING_CONSTANT = auto()
+    CHARACTER_CONSTANT = "character constant"
+    INTEGER_CONSTANT = "integer constant"
+    FLOATING_CONSTANT = "floating constant"
+    STRING_CONSTANT = "string constant"
 
     # punctuators
-    LEFT_BRACE = auto()
-    RIGHT_BRACE = auto()
-    LEFT_PAREN = auto()
-    RIGHT_PAREN = auto()
-    LEFT_BRACKET = auto()
-    RIGHT_BRACKET = auto()
-    PERIOD = auto()
-    ELLIPSIS = auto()
-    SEMICOLON = auto()
-    COMMA = auto()
-    LESS_THAN = auto()
-    GREATER_THAN = auto()
-    LESS_THAN_EQUALS = auto()
-    GREATER_THAN_EQUALS = auto()
-    EQUALS_EQUALS = auto()
-    EXCLAMATION_EQUALS = auto()
-    PLUS = auto()
-    MINUS = auto()
-    STAR = auto()
-    SLASH = auto()
-    PERCENT = auto()
-    PLUS_PLUS = auto()
-    MINUS_MINUS = auto()
-    LESS_THAN_LESS_THAN = auto()
-    GREATER_THAN_GREATER_THAN = auto()
-    AMPERSAND = auto()
-    PIPE = auto()
-    CARET = auto()
-    EXCLAMATION = auto()
-    TILDE = auto()
-    AMPERSAND_AMPERSAND = auto()
-    PIPE_PIPE = auto()
-    QUESTION = auto()
-    COLON = auto()
-    ARROW = auto()
-    EQUALS = auto()
-    PLUS_EQUALS = auto()
-    MINUS_EQUALS = auto()
-    STAR_EQUALS = auto()
-    SLASH_EQUALS = auto()
-    PERCENT_EQUALS = auto()
-    LESS_THAN_LESS_THAN_EQUALS = auto()
-    GREATER_THAN_GREATER_THAN_EQUALS = auto()
-    AMPERSAND_EQUALS = auto()
-    PIPE_EQUALS = auto()
-    CARET_EQUALS = auto()
-    HASH = auto()
-    HASH_HASH = auto()
+    LEFT_BRACE = "{"
+    RIGHT_BRACE = "}"
+    LEFT_PAREN = "("
+    RIGHT_PAREN = ")"
+    LEFT_BRACKET = "["
+    RIGHT_BRACKET = "]"
+    PERIOD = "."
+    ELLIPSIS = "..."
+    SEMICOLON = ";"
+    COMMA = ","
+    LESS_THAN = "<"
+    GREATER_THAN = ">"
+    LESS_THAN_EQUALS = "<="
+    GREATER_THAN_EQUALS = ">="
+    EQUALS_EQUALS = "=="
+    EXCLAMATION_EQUALS = "!="
+    PLUS = "+"
+    MINUS = "-"
+    STAR = "*"
+    SLASH = "/"
+    PERCENT = "%"
+    PLUS_PLUS = "++"
+    MINUS_MINUS = "--"
+    LESS_THAN_LESS_THAN = "<<"
+    GREATER_THAN_GREATER_THAN = ">>"
+    AMPERSAND = "&"
+    PIPE = "|"
+    CARET = "^"
+    EXCLAMATION = "!"
+    TILDE = "~"
+    AMPERSAND_AMPERSAND = "&&"
+    PIPE_PIPE = "||"
+    QUESTION = "?"
+    COLON = ":"
+    ARROW = "->"
+    EQUALS = "="
+    PLUS_EQUALS = "+="
+    MINUS_EQUALS = "-="
+    STAR_EQUALS = "*="
+    SLASH_EQUALS = "/="
+    PERCENT_EQUALS = "%="
+    LESS_THAN_LESS_THAN_EQUALS = "<<="
+    GREATER_THAN_GREATER_THAN_EQUALS = ">>="
+    AMPERSAND_EQUALS = "&="
+    PIPE_EQUALS = "|="
+    CARET_EQUALS = "^="
+    HASH = "#"
+    HASH_HASH = "##"
 
     # keywords
-    AUTO = auto()
-    BREAK = auto()
-    CASE = auto()
-    CHAR = auto()
-    CONST = auto()
-    CONTINUE = auto()
-    DEFAULT = auto()
-    DO = auto()
-    DOUBLE = auto()
-    ELSE = auto()
-    ENUM = auto()
-    EXTERN = auto()
-    FLOAT = auto()
-    FOR = auto()
-    GOTO = auto()
-    IF = auto()
-    INLINE = auto()
-    INT = auto()
-    LONG = auto()
-    REGISTER = auto()
-    RESTRICT = auto()
-    RETURN = auto()
-    SHORT = auto()
-    SIGNED = auto()
-    SIZEOF = auto()
-    STATIC = auto()
-    STRUCT = auto()
-    SWITCH = auto()
-    TYPEDEF = auto()
-    UNION = auto()
-    UNSIGNED = auto()
-    VOID = auto()
-    VOLATILE = auto()
-    WHILE = auto()
-    ALIGNAS = auto()
-    ALIGNOF = auto()
-    ATOMIC = auto()
-    BOOL = auto()
-    COMPLEX = auto()
-    GENERIC = auto()
-    IMAGINARY = auto()
-    NORETURN = auto()
-    STATIC_ASSERT = auto()
-    THREAD_LOCAL = auto()
+    AUTO = "auto"
+    BREAK = "break"
+    CASE = "case"
+    CHAR = "char"
+    CONST = "const"
+    CONTINUE = "continue"
+    DEFAULT = "default"
+    DO = "do"
+    DOUBLE = "double"
+    ELSE = "else"
+    ENUM = "enum"
+    EXTERN = "extern"
+    FLOAT = "float"
+    FOR = "for"
+    GOTO = "goto"
+    IF = "if"
+    INLINE = "inline"
+    INT = "int"
+    LONG = "long"
+    REGISTER = "register"
+    RESTRICT = "restrict"
+    RETURN = "return"
+    SHORT = "short"
+    SIGNED = "signed"
+    SIZEOF = "sizeof"
+    STATIC = "static"
+    STRUCT = "struct"
+    SWITCH = "switch"
+    TYPEDEF = "typedef"
+    UNION = "union"
+    UNSIGNED = "unsigned"
+    VOID = "void"
+    VOLATILE = "volatile"
+    WHILE = "while"
+    ALIGNAS = "_Alignas"
+    ALIGNOF = "_Alignof"
+    ATOMIC = "_Atomic"
+    BOOL = "_Bool"
+    COMPLEX = "_Complex"
+    GENERIC = "_Generic"
+    IMAGINARY = "_Imaginary"
+    NORETURN = "_No_return"
+    STATIC_ASSERT = "_Static_assert"
+    THREAD_LOCAL = "_Thread_local"
 
 
 KEYWORDS = {
-    "auto": Token.AUTO,
-    "break": Token.BREAK,
-    "case": Token.CASE,
-    "char": Token.CHAR,
-    "const": Token.CONST,
-    "continue": Token.CONTINUE,
-    "default": Token.DEFAULT,
-    "do": Token.DO,
-    "double": Token.DOUBLE,
-    "else": Token.ELSE,
-    "enum": Token.ENUM,
-    "extern": Token.EXTERN,
-    "float": Token.FLOAT,
-    "for": Token.FOR,
-    "goto": Token.GOTO,
-    "if": Token.IF,
-    "inline": Token.INLINE,
-    "int": Token.INT,
-    "long": Token.LONG,
-    "register": Token.REGISTER,
-    "restrict": Token.RESTRICT,
-    "return": Token.RETURN,
-    "short": Token.SHORT,
-    "signed": Token.SIGNED,
-    "sizeof": Token.SIZEOF,
-    "struct": Token.STRUCT,
-    "switch": Token.SWITCH,
-    "typedef": Token.TYPEDEF,
-    "union": Token.UNION,
-    "unsigned": Token.UNSIGNED,
-    "void": Token.VOID,
-    "volatile": Token.VOLATILE,
-    "while": Token.WHILE,
-    "_Alignas": Token.ALIGNAS,
-    "_Alignof": Token.ALIGNOF,
-    "_Atomic": Token.ATOMIC,
-    "_Bool": Token.BOOL,
-    "_Complex": Token.COMPLEX,
-    "_Generic": Token.GENERIC,
-    "_Imaginary": Token.IMAGINARY,
-    "_Noreturn": Token.NORETURN,
-    "_Static_assert": Token.STATIC_ASSERT,
-    "_Thread_local": Token.THREAD_LOCAL,
+    Token.AUTO,
+    Token.BREAK,
+    Token.CASE,
+    Token.CHAR,
+    Token.CONST,
+    Token.CONTINUE,
+    Token.DEFAULT,
+    Token.DO,
+    Token.DOUBLE,
+    Token.ELSE,
+    Token.ENUM,
+    Token.EXTERN,
+    Token.FLOAT,
+    Token.FOR,
+    Token.GOTO,
+    Token.IF,
+    Token.INLINE,
+    Token.INT,
+    Token.LONG,
+    Token.REGISTER,
+    Token.RESTRICT,
+    Token.RETURN,
+    Token.SHORT,
+    Token.SIGNED,
+    Token.SIZEOF,
+    Token.STRUCT,
+    Token.SWITCH,
+    Token.TYPEDEF,
+    Token.UNION,
+    Token.UNSIGNED,
+    Token.VOID,
+    Token.VOLATILE,
+    Token.WHILE,
+    Token.ALIGNAS,
+    Token.ALIGNOF,
+    Token.ATOMIC,
+    Token.BOOL,
+    Token.COMPLEX,
+    Token.GENERIC,
+    Token.IMAGINARY,
+    Token.NORETURN,
+    Token.STATIC_ASSERT,
+    Token.THREAD_LOCAL,
 }
 
 PUNCTUATORS = {
-    "{": Token.LEFT_BRACE,
-    "}": Token.RIGHT_BRACE,
-    "(": Token.LEFT_PAREN,
-    ")": Token.RIGHT_PAREN,
-    "[": Token.LEFT_BRACKET,
-    "]": Token.RIGHT_BRACKET,
-    ".": Token.PERIOD,
-    "...": Token.ELLIPSIS,
-    ",": Token.COMMA,
-    ";": Token.SEMICOLON,
-    "<": Token.LESS_THAN,
-    "<=": Token.LESS_THAN_EQUALS,
-    "<<": Token.LESS_THAN_LESS_THAN,
-    "<<=": Token.LESS_THAN_LESS_THAN_EQUALS,
-    ">": Token.GREATER_THAN,
-    ">=": Token.GREATER_THAN_EQUALS,
-    ">>": Token.GREATER_THAN_GREATER_THAN,
-    ">>=": Token.GREATER_THAN_GREATER_THAN_EQUALS,
-    "=": Token.EQUALS,
-    "==": Token.EQUALS_EQUALS,
-    "!": Token.EXCLAMATION,
-    "!=": Token.EXCLAMATION_EQUALS,
-    "+": Token.PLUS,
-    "++": Token.PLUS_PLUS,
-    "+=": Token.PLUS_EQUALS,
-    "-": Token.MINUS,
-    "--": Token.MINUS_MINUS,
-    "-=": Token.MINUS_EQUALS,
-    "->": Token.ARROW,
-    "*": Token.STAR,
-    "*=": Token.STAR_EQUALS,
-    "/": Token.SLASH,
-    "/=": Token.SLASH_EQUALS,
-    "//": Token.SINGLE_LINE_COMMENT,
-    "/**/": Token.MULTI_LINE_COMMENT,
-    "%": Token.PERCENT,
-    "%=": Token.PERCENT_EQUALS,
-    "&": Token.AMPERSAND,
-    "&&": Token.AMPERSAND_AMPERSAND,
-    "&=": Token.AMPERSAND_EQUALS,
-    "|": Token.PIPE,
-    "||": Token.PIPE_PIPE,
-    "|=": Token.PIPE_EQUALS,
-    "^": Token.CARET,
-    "^=": Token.CARET_EQUALS,
-    "~": Token.TILDE,
-    "?": Token.QUESTION,
-    ":": Token.COLON,
-    "#": Token.HASH,
-    "##": Token.HASH_HASH,
+    Token.LEFT_BRACE,
+    Token.RIGHT_BRACE,
+    Token.LEFT_PAREN,
+    Token.RIGHT_PAREN,
+    Token.LEFT_BRACKET,
+    Token.RIGHT_BRACKET,
+    Token.PERIOD,
+    Token.ELLIPSIS,
+    Token.COMMA,
+    Token.SEMICOLON,
+    Token.LESS_THAN,
+    Token.LESS_THAN_EQUALS,
+    Token.LESS_THAN_LESS_THAN,
+    Token.LESS_THAN_LESS_THAN_EQUALS,
+    Token.GREATER_THAN,
+    Token.GREATER_THAN_EQUALS,
+    Token.GREATER_THAN_GREATER_THAN,
+    Token.GREATER_THAN_GREATER_THAN_EQUALS,
+    Token.EQUALS,
+    Token.EQUALS_EQUALS,
+    Token.EXCLAMATION,
+    Token.EXCLAMATION_EQUALS,
+    Token.PLUS,
+    Token.PLUS_PLUS,
+    Token.PLUS_EQUALS,
+    Token.MINUS,
+    Token.MINUS_MINUS,
+    Token.MINUS_EQUALS,
+    Token.ARROW,
+    Token.STAR,
+    Token.STAR_EQUALS,
+    Token.SLASH,
+    Token.SLASH_EQUALS,
+    Token.PERCENT,
+    Token.PERCENT_EQUALS,
+    Token.AMPERSAND,
+    Token.AMPERSAND_AMPERSAND,
+    Token.AMPERSAND_EQUALS,
+    Token.PIPE,
+    Token.PIPE_PIPE,
+    Token.PIPE_EQUALS,
+    Token.CARET,
+    Token.CARET_EQUALS,
+    Token.TILDE,
+    Token.QUESTION,
+    Token.COLON,
+    Token.HASH,
+    Token.HASH_HASH,
 }
